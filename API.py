@@ -94,9 +94,46 @@ def insertEscreveu():
         cursor.close()
 
 
-@app.route('/delete')
-def delete():
-    return
+@app.route('/deleteAutor', methods=['POST'])
+def deleteAutor():
+    try:
+
+        autor_nome = request.json['autor_nome']
+        cursor = bd.cursor() 
+        cursor.execute('''
+            DELETE FROM biblioteca.Autor WHERE nome = (autor_nome)
+            VALUES (%s);''', (autor_nome))
+        bd.commit() 
+        return {"message": "Autor removido com sucesso!"}, 201
+    
+    except psycopg2.Error as e:
+        bd.rollback() 
+        return {"Erro:": str(e)}, 400
+
+    finally:
+        cursor.close()
+
+
+@app.route('/deleteLivro', methods=['POST'])
+def deleteLivro():
+    try:
+
+        livro_isbn = request.json['livro_isbn']
+        cursor = bd.cursor() 
+        cursor.execute('''
+            DELETE FROM biblioteca.livro WHERE isbn = (livro_isbn)
+            VALUES (%s);''', (livro_isbn))
+        bd.commit() 
+
+        return {"message": "Livro removido com sucesso!"}, 201
+    
+    except psycopg2.Error as e:
+        bd.rollback() 
+        return {"Erro:": str(e)}, 400
+
+    finally:
+        cursor.close()
+            
 
 @app.route('/update')
 def update():
