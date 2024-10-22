@@ -1,5 +1,6 @@
 import psycopg2 #Biblioteca para conectar com o postgres
-from flask import Flask, request
+from flask import Flask, jsonify, request
+from psycopg2.extras import DictCursor
 
 #Conexão com o BD
 bd = psycopg2.connect(
