@@ -94,7 +94,7 @@ def insertEscreveu():
         cursor.close()
 
 
-@app.route('/deleteAutor', methods=['POST'])
+@app.route('/deleteAutor', methods=['DELETE'])
 def deleteAutor():
     try:
 
@@ -104,7 +104,7 @@ def deleteAutor():
             DELETE FROM biblioteca.Autor WHERE nome = (autor_nome)
             VALUES (%s);''', (autor_nome))
         bd.commit() 
-        return {"message": "Autor removido com sucesso!"}, 201
+        return {"message": "Autor removido com sucesso!"}, 204
     
     except psycopg2.Error as e:
         bd.rollback() 
@@ -114,7 +114,7 @@ def deleteAutor():
         cursor.close()
 
 
-@app.route('/deleteLivro', methods=['POST'])
+@app.route('/deleteLivro', methods=['DELETE'])
 def deleteLivro():
     try:
 
@@ -125,7 +125,7 @@ def deleteLivro():
             VALUES (%s);''', (livro_isbn))
         bd.commit() 
 
-        return {"message": "Livro removido com sucesso!"}, 201
+        return {"message": "Livro removido com sucesso!"}, 204
     
     except psycopg2.Error as e:
         bd.rollback() 
@@ -134,7 +134,6 @@ def deleteLivro():
     finally:
         cursor.close()
             
-
 @app.route('/updateautor', methods=['PUT']) #Atualização na tabela autor (entidade)
 def updateAutor():
     try:
@@ -214,9 +213,63 @@ def updateEscreveu():
     finally:
         cursor.close()
 
-@app.route('/leitura', methods=['GET'])
-def leitura():
-    return
+@app.route('/leituraAutor', methods=['GET'])
+def leituraAutor():
+    try:
+
+        cursor = bd.cursor(cursor_factory=DictCursor)
+        query = "SELECT * FROM biblioteca.autor;"
+        cursor.execute(query)
+        autores = cursor.fetchall()
+        if not autores:
+            app.abort(404, "Autores não encontrados")
+        return jsonify([dict(autor) for autor in autores]), 200
+    
+    except psycopg2.Error as e:
+            print(f"Erro ao buscar dados: {e}")
+            app.abort(500, "Erro ao buscar dados no banco de dados")
+
+    finally:
+        cursor.close()
+
+@app.route('/leituraLivro', methods=['GET'])
+def leituraLivro():
+    try:
+
+        cursor = bd.cursor(cursor_factory=DictCursor)
+        query = "SELECT * FROM biblioteca.livro;"
+        cursor.execute(query)
+        livros = cursor.fetchall()
+        if not livros:
+            app.abort(404, "Livros não encontrados")
+        return jsonify([dict(livro) for livro in livros]), 200
+    
+    except psycopg2.Error as e:
+            print(f"Erro ao buscar dados: {e}")
+            app.abort(500, "Erro ao buscar dados no banco de dados")
+
+    finally:
+        cursor.close()
+    
+
+@app.route('/leituraEscreveu', methods=['GET'])
+def leituraEscreveu():
+    try:
+
+        cursor = bd.cursor(cursor_factory=DictCursor)
+        query = "SELECT * FROM biblioteca.escreveu;"
+        cursor.execute(query)
+        escritos = cursor.fetchall()
+        if not escritos:
+            app.abort(404, "Dados não encontrados")
+        return jsonify([dict(escreveu) for escreveu in escritos]), 200
+    
+    except psycopg2.Error as e:
+            print(f"Erro ao buscar dados: {e}")
+            app.abort(500, "Erro ao buscar dados no banco de dados")
+
+    finally:
+        cursor.close()
 
 @app.route('/transacao')
 def transacao():
