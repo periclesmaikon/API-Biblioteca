@@ -1,6 +1,5 @@
 import psycopg2 #Biblioteca para conectar com o postgres
-from flask import Flask, jsonify, request
-from psycopg2.extras import DictCursor
+from flask import Flask, request
 
 #Conexão com o BD
 bd = psycopg2.connect(
@@ -95,7 +94,7 @@ def insertEscreveu():
         cursor.close()
 
 
-@app.route('/deleteAutor', methods=['DELETE'])
+@app.route('/deleteAutor', methods=['POST'])
 def deleteAutor():
     try:
 
@@ -105,7 +104,7 @@ def deleteAutor():
             DELETE FROM biblioteca.Autor WHERE nome = (autor_nome)
             VALUES (%s);''', (autor_nome))
         bd.commit() 
-        return {"message": "Autor removido com sucesso!"}, 204
+        return {"message": "Autor removido com sucesso!"}, 201
     
     except psycopg2.Error as e:
         bd.rollback() 
@@ -115,7 +114,7 @@ def deleteAutor():
         cursor.close()
 
 
-@app.route('/deleteLivro', methods=['DELETE'])
+@app.route('/deleteLivro', methods=['POST'])
 def deleteLivro():
     try:
 
@@ -126,7 +125,7 @@ def deleteLivro():
             VALUES (%s);''', (livro_isbn))
         bd.commit() 
 
-        return {"message": "Livro removido com sucesso!"}, 204
+        return {"message": "Livro removido com sucesso!"}, 201
     
     except psycopg2.Error as e:
         bd.rollback() 
@@ -136,67 +135,88 @@ def deleteLivro():
         cursor.close()
             
 
-@app.route('/update')
-def update():
+@app.route('/updateautor', methods=['PUT']) #Atualização na tabela autor (entidade)
+def updateAutor():
+    try:
+        # Obtendo dados da requisição
+	autor_antigo = request.json['autor_antigo']
+        autor_novo = request.json['autor_novo']
+        genero = request.json['genero']
+        nacionalidade = request.json['nacionalidade']
+	
+
+        cursor = bd.cursor() #Inicia cursor
+        cursor.execute('''
+            UPDATE biblioteca.autor SET nome = %s, genero_principal = %s, nacionalidade=%s WHERE nome = %s;''', (autor_novo, genero, nacionalidade, autor_antigo))
+        bd.commit() #Confirma a atualização
+
+        return {"message": "Autor atualizado com sucesso!"}, 200
+    
+    except psycopg2.Error as e:
+        bd.rollback() #Reverte a atualização
+        return {"Erro:": str(e)}, 400
+
+    finally:
+        cursor.close()
+
+@app.route('/updatelivro', methods=['PUT'])
+def updateLivro():
+    try:
+        # Obtendo dados da requisição
+        livro_isbn = request.json['isbn']  # ISBN do livro que deseja atualizar
+        novo_nome = request.json['novo_nome']
+        novo_num_pag = request.json['novo_num_pag']
+        nova_sinopse = request.json['nova_sinopse']
+        novo_genero = request.json['novo_genero']
+        nova_class_indic = request.json['nova_class_indic']
+        novo_formato = request.json['novo_formato']
+
+        cursor = bd.cursor()
+        cursor.execute('''
+            UPDATE biblioteca.livro
+            SET nome = %s, num_pag = %s, sinopse = %s, genero = %s, class_indic = %s, formato = %s
+            WHERE isbn = %s;''',
+            (novo_nome, novo_num_pag, nova_sinopse, novo_genero, nova_class_indic, novo_formato, livro_isbn))
+        bd.commit()
+
+        return {"message": "Livro atualizado com sucesso!"}, 200
+
+    except psycopg2.Error as e:
+        bd.rollback()
+        return {"Erro:": str(e)}, 400
+
+    finally:
+        cursor.close()
+
+@app.route('/updateescreveu', methods=['PUT'])
+def updateEscreveu():
+    try:
+        # Obtendo dados da requisição
+        autor_nome = request.json['autor_nome']
+        livro_isbn = request.json['livro_isbn']
+        nova_data_escrito = request.json['nova_data_escrito']
+        nova_sequencia = request.json['nova_sequencia']
+
+        cursor = bd.cursor()
+        cursor.execute('''
+            UPDATE biblioteca.escreveu
+            SET data_escrito = %s, sequencia = %s
+            WHERE autor_nome = %s AND livro_isbn = %s;''',
+            (nova_data_escrito, nova_sequencia, autor_nome, livro_isbn))
+        bd.commit()
+
+        return {"message": "Relação 'Escreveu' atualizada com sucesso!"}, 200
+
+    except psycopg2.Error as e:
+        bd.rollback()
+        return {"Erro:": str(e)}, 400
+
+    finally:
+        cursor.close()
+
+@app.route('/leitura', methods=['GET'])
+def leitura():
     return
-
-@app.route('/leituraAutor', methods=['GET'])
-def leituraAutor():
-    try:
-
-        cursor = bd.cursor(cursor_factory=DictCursor)
-        query = "SELECT * FROM biblioteca.autor;"
-        cursor.execute(query)
-        autores = cursor.fetchall()
-        if not autores:
-            app.abort(404, "Autores não encontrados")
-        return jsonify([dict(autor) for autor in autores]), 200
-    
-    except psycopg2.Error as e:
-            print(f"Erro ao buscar dados: {e}")
-            app.abort(500, "Erro ao buscar dados no banco de dados")
-
-    finally:
-        cursor.close()
-
-@app.route('/leituraLivro', methods=['GET'])
-def leituraLivro():
-    try:
-
-        cursor = bd.cursor(cursor_factory=DictCursor)
-        query = "SELECT * FROM biblioteca.livro;"
-        cursor.execute(query)
-        livros = cursor.fetchall()
-        if not livros:
-            app.abort(404, "Livros não encontrados")
-        return jsonify([dict(livro) for livro in livros]), 200
-    
-    except psycopg2.Error as e:
-            print(f"Erro ao buscar dados: {e}")
-            app.abort(500, "Erro ao buscar dados no banco de dados")
-
-    finally:
-        cursor.close()
-    
-
-@app.route('/leituraEscreveu', methods=['GET'])
-def leituraEscreveu():
-    try:
-
-        cursor = bd.cursor(cursor_factory=DictCursor)
-        query = "SELECT * FROM biblioteca.escreveu;"
-        cursor.execute(query)
-        escritos = cursor.fetchall()
-        if not escritos:
-            app.abort(404, "Dados não encontrados")
-        return jsonify([dict(escreveu) for escreveu in escritos]), 200
-    
-    except psycopg2.Error as e:
-            print(f"Erro ao buscar dados: {e}")
-            app.abort(500, "Erro ao buscar dados no banco de dados")
-
-    finally:
-        cursor.close()
 
 @app.route('/transacao')
 def transacao():
