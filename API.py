@@ -163,7 +163,8 @@ def updateAutor():
 def updateLivro():
     try:
         # Obtendo dados da requisição
-        livro_isbn = request.json['isbn']  # ISBN do livro que deseja atualizar
+        livro_isbn_antigo = request.json['isbn_antigo']  # ISBN do livro que deseja atualizar
+	livro_isbn_novo = request.json['isbn_novo']
         novo_nome = request.json['novo_nome']
         novo_num_pag = request.json['novo_num_pag']
         nova_sinopse = request.json['nova_sinopse']
@@ -174,9 +175,9 @@ def updateLivro():
         cursor = bd.cursor()
         cursor.execute('''
             UPDATE biblioteca.livro
-            SET nome = %s, num_pag = %s, sinopse = %s, genero = %s, class_indic = %s, formato = %s
+            SET isbn = %s, nome = %s, num_pag = %s, sinopse = %s, genero = %s, class_indic = %s, formato = %s
             WHERE isbn = %s;''',
-            (novo_nome, novo_num_pag, nova_sinopse, novo_genero, nova_class_indic, novo_formato, livro_isbn))
+            (livro_isbn_novo, novo_nome, novo_num_pag, nova_sinopse, novo_genero, nova_class_indic, novo_formato, livro_isbn_antigo))
         bd.commit()
 
         return {"message": "Livro atualizado com sucesso!"}, 200
@@ -192,17 +193,19 @@ def updateLivro():
 def updateEscreveu():
     try:
         # Obtendo dados da requisição
-        autor_nome = request.json['autor_nome']
-        livro_isbn = request.json['livro_isbn']
+        autor_nome_antigo = request.json['autor_nome_antigo']
+	autor_nome_novo = request.json['autor_nome_novo']
+        livro_isbn_antigo = request.json['livro_isbn_antigo']
+        livro_isbn_novo = request.json['livro_isbn_novo']
         nova_data_escrito = request.json['nova_data_escrito']
         nova_sequencia = request.json['nova_sequencia']
 
         cursor = bd.cursor()
         cursor.execute('''
             UPDATE biblioteca.escreveu
-            SET data_escrito = %s, sequencia = %s
+            SET autor_nome = %s, livro_isbn = %s, data_escrito = %s, sequencia = %s
             WHERE autor_nome = %s AND livro_isbn = %s;''',
-            (nova_data_escrito, nova_sequencia, autor_nome, livro_isbn))
+            (autor_nome_novo, livro_isbn_novo, nova_data_escrito, nova_sequencia, autor_nome_antigo, livro_isbn_antigo))
         bd.commit()
 
         return {"message": "Relação 'Escreveu' atualizada com sucesso!"}, 200
