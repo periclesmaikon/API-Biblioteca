@@ -137,12 +137,13 @@ def deleteLivro():
 def deleteEscreveu():
     try:
         autor_nome = request.json['autor_nome']
+        livro_isbn = request.json['livro_isbn']
         cursor = bd.cursor() 
         cursor.execute('''
-            DELETE FROM biblioteca.escreveu WHERE autor_nome = %s;''',
-            (autor_nome,))
+            DELETE FROM biblioteca.escreveu WHERE autor_nome = %s AND livro_isbn = %s;''',
+            (autor_nome, livro_isbn,))
         bd.commit() 
-        return {"message": "Livro removido com sucesso!"}, 204
+        return {"message": "Livro removido com sucesso!"}, 201
     
     except psycopg2.Error as e:
         bd.rollback() 
