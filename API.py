@@ -288,8 +288,40 @@ def leituraEscreveu():
     finally:
         cursor.close()
 
-@app.route('/transacao')
+@app.route('/transacao', methods=['POST'])
 def transacao():
-    return
+    try:
+        # Inicia a transação com um cursor
+        cursor = bd.cursor()
+
+        # Operação 1: Leitura de autores
+        cursor.execute("SELECT * FROM biblioteca.autor;")
+        autores = cursor.fetchall()
+        print(f"Autores antes da inserção: {autores}")
+
+        # Operação 2: Inserção de um novo autor
+        autor = request.json['autor']
+        genero = request.json['genero']
+        nacionalidade = request.json['nacionalidade']
+        cursor.execute('''
+            INSERT INTO biblioteca.autor (nome, genero_principal, nacionalidade)
+            VALUES (%s, %s, %s);''', (autor, genero, nacionalidade))
+
+        # Operação 3: Leitura de autores novamente após a inserção
+        cursor.execute("SELECT * FROM biblioteca.autor;")
+        novos_autores = cursor.fetchall()
+        print(f"Autores após a inserção: {novos_autores}")
+
+        # Confirma as operações
+        bd.commit()
+
+        return {"message": "Transação executada com sucesso!", "antes": autores, "depois": novos_autores}, 201
+    
+    except psycopg2.Error as e:
+        bd.rollback()  # Reverte a transação em caso de erro
+        return {"Erro": str(e)}, 400
+
+    finally:
+        cursor.close()
 
 app.run()
