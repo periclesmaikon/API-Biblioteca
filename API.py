@@ -16,7 +16,7 @@ app = Flask(__name__)   #Inicia a API
 def home():
     return "API - BIBLIOTECA"
 
-@app.route('/insertautor', methods=['POST']) #Inserção na tabela autor (entidade)
+@app.route('/insertAutor', methods=['POST']) #Inserção na tabela autor (entidade)
 def insertAutor():
     try:
         # Obtendo dados da requisição
@@ -40,7 +40,7 @@ def insertAutor():
     finally:
         cursor.close()
 
-@app.route('/insertlivro', methods=['POST']) #Inserção na tabela livro (entidade)
+@app.route('/insertLivro', methods=['POST']) #Inserção na tabela livro (entidade)
 def insertLivro():
     try:
         # Obtendo dados da requisição
@@ -69,7 +69,7 @@ def insertLivro():
     finally:
         cursor.close()
 
-@app.route('/insertescreveu', methods=['POST']) #Inserção na tabela escreveu (relação)
+@app.route('/insertEscreveu', methods=['POST']) #Inserção na tabela escreveu (relação)
 def insertEscreveu():
     try:
         # Obtendo dados da requisição
@@ -98,14 +98,13 @@ def insertEscreveu():
 @app.route('/deleteAutor', methods=['DELETE'])
 def deleteAutor():
     try:
-
-        autor_nome = request.json['autor_nome']
+        autor = request.json['autor']
         cursor = bd.cursor() 
         cursor.execute('''
-            DELETE FROM biblioteca.Autor WHERE nome = (autor_nome)
-            VALUES (%s);''', (autor_nome))
+            DELETE FROM biblioteca.autor WHERE nome = %s;''', 
+            (autor,))
         bd.commit() 
-        return {"message": "Autor removido com sucesso!"}, 204
+        return {"message": "Autor removido com sucesso!"}, 201
     
     except psycopg2.Error as e:
         bd.rollback() 
@@ -115,18 +114,36 @@ def deleteAutor():
         cursor.close()
 
 
+
 @app.route('/deleteLivro', methods=['DELETE'])
 def deleteLivro():
     try:
-
-        livro_isbn = request.json['livro_isbn']
+        isbn = request.json['isbn']
         cursor = bd.cursor() 
         cursor.execute('''
-            DELETE FROM biblioteca.livro WHERE isbn = (livro_isbn)
-            VALUES (%s);''', (livro_isbn))
+            DELETE FROM biblioteca.livro WHERE isbn = %s;''',
+            (isbn,))
         bd.commit() 
+        return {"message": "Livro removido com sucesso!"}, 201
+    
+    except psycopg2.Error as e:
+        bd.rollback() 
+        return {"Erro:": str(e)}, 400
 
-        return {"message": "Livro removido com sucesso!"}, 204
+    finally:
+        cursor.close()
+
+
+@app.route('/deleteEscreveu', methods=['DELETE'])
+def deleteEscreveu():
+    try:
+        autor_nome = request.json['autor_nome']
+        cursor = bd.cursor() 
+        cursor.execute('''
+            DELETE FROM biblioteca.escreveu WHERE autor_nome = %s;''',
+            (autor_nome,))
+        bd.commit() 
+        return {"message": "Livro removido com sucesso!"}, 201
     
     except psycopg2.Error as e:
         bd.rollback() 
@@ -135,7 +152,7 @@ def deleteLivro():
     finally:
         cursor.close()
             
-@app.route('/updateautor', methods=['PUT']) #Atualização na tabela autor (entidade)
+@app.route('/updateAutor', methods=['PUT']) #Atualização na tabela autor (entidade)
 def updateAutor():
     try:
         # Obtendo dados da requisição
@@ -159,7 +176,7 @@ def updateAutor():
     finally:
         cursor.close()
 
-@app.route('/updatelivro', methods=['PUT'])
+@app.route('/updateLivro', methods=['PUT'])
 def updateLivro():
     try:
         # Obtendo dados da requisição
@@ -189,7 +206,7 @@ def updateLivro():
     finally:
         cursor.close()
 
-@app.route('/updateescreveu', methods=['PUT'])
+@app.route('/updateEscreveu', methods=['PUT'])
 def updateEscreveu():
     try:
         # Obtendo dados da requisição
