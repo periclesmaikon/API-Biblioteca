@@ -94,7 +94,6 @@ def insertEscreveu():
     finally:
         cursor.close()
 
-
 @app.route('/deleteAutor', methods=['DELETE'])
 def deleteAutor():
     try:
