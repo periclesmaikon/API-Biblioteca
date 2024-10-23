@@ -152,7 +152,7 @@ def deleteEscreveu():
     finally:
         cursor.close()
             
-@app.route('/updateautor', methods=['PUT']) #Atualização na tabela autor (entidade)
+@app.route('/updateAutor', methods=['PUT']) #Atualização na tabela autor (entidade)
 def updateAutor():
     try:
         # Obtendo dados da requisição
@@ -175,7 +175,7 @@ def updateAutor():
     finally:
         cursor.close()
 
-@app.route('/updatelivro', methods=['PUT'])
+@app.route('/updateLivro', methods=['PUT'])
 def updateLivro():
     try:
         # Obtendo dados da requisição
@@ -204,7 +204,7 @@ def updateLivro():
     finally:
         cursor.close()
 
-@app.route('/updateescreveu', methods=['PUT'])
+@app.route('/updateEscreveu', methods=['PUT'])
 def updateEscreveu():
     try:
         # Obtendo dados da requisição
