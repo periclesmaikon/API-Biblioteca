@@ -175,7 +175,7 @@ def updateAutor():
     finally:
         cursor.close()
 
-@app.route('/updateLivro', methods=['PUT'])
+@app.route('/updatelivro', methods=['PUT'])
 def updateLivro():
     try:
         # Obtendo dados da requisição
